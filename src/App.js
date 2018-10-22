@@ -1,8 +1,10 @@
 /* eslint-disable no-undef */
 import React, {Component} from 'react';
+import Web3 from 'web3';
 import cryptico from 'cryptico';
 import PasswordRow from './passwordRow';
 import './App.css';
+import * as storeHash from './storeHash';
 
 class App extends Component {
   constructor(props) {
@@ -10,6 +12,8 @@ class App extends Component {
 
     this.state = {
       ethAddress: null,
+      contractAddress: null,
+      contract: null,
       passwords: [
         {
           "website": "google.com",
@@ -25,22 +29,26 @@ class App extends Component {
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     if (window.ethereum) {
       window.web3 = new Web3(ethereum);
 
-      ethereum.enable().then(function () {
-        const accounts = web3.eth.accounts;
+      try {
+        await ethereum.enable();
+
+        const accounts = await web3.eth.getAccounts();
 
         if (accounts.length === 0) {
           alert('User doesn\'t have any MetaMask accounts!');
           return;
         }
 
-        this.setState({ethAddress: accounts[0]});
-      }.bind(this)).catch(function (error) {
+        const contract = new web3.eth.Contract(storeHash.abi, storeHash.address);
+
+        this.setState({ethAddress: accounts[0], contract, contractAddress: await contract.options.address});
+      } catch (error) {
         alert(`User rejected access to MetaMask accounts: ${error}`);
-      })
+      }
     } else {
       alert('This application needs MetaMask in order to work');
     }
@@ -110,20 +118,19 @@ class App extends Component {
     }
 
     const cipherText = encryptedJson.cipher;
-
-    const decryptedText = cryptico.decrypt(cipherText, rsaKey);
-
-    const decryptedJson = JSON.parse(decryptedText.plaintext);
   };
 
   render() {
     const updatePassword = this.updatePassword;
-    const {ethAddress, passwords} = this.state;
+    const {ethAddress, contractAddress, passwords} = this.state;
 
     return (
       <div className="App">
         <p>
           ETH address: {ethAddress}
+        </p>
+        <p>
+          Contract address: {contractAddress}
         </p>
         <table className='password-table'>
           <thead>

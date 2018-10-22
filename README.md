@@ -256,6 +256,37 @@ updateMasterPasswordFile = () => {
 };
 ```
 - - - -
+## Web3
+* Web3 kao biblioteka za povezivanje sa MetaMask-om
+* Od 2gog novembra `ethereum.enable()`
+* Import contract ABI-a i adrese contract-a
+```javascript
+async componentDidMount() {
+  if (window.ethereum) {
+    window.web3 = new Web3(ethereum);
+
+    try {
+      await ethereum.enable();
+
+      const accounts = await web3.eth.getAccounts();
+
+      if (accounts.length === 0) {
+        alert('User doesn\'t have any MetaMask accounts!');
+        return;
+      }
+
+      const contract = new web3.eth.Contract(storeHash.abi, storeHash.address);
+
+      this.setState({ethAddress: accounts[0], contract, contractAddress: await contract.options.address});
+    } catch (error) {
+      alert(`User rejected access to MetaMask accounts: ${error}`);
+    }
+  } else {
+    alert('This application needs MetaMask in order to work');
+  }
+}
+```
+- - - -
 ## “Domaci”
 * Brisanje sifre
 - - - -

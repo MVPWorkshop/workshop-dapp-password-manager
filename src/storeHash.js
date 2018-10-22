@@ -1,8 +1,6 @@
-import web3 from 'web3';
+export const address = '0x965f1178c9c025e508163e1a759a43e3a356392d';
 
-const address = '0x965f1178c9c025e508163e1a759a43e3a356392d';
-
-const abi = [
+export const abi = [
   {
     "constant": false,
     "inputs": [
@@ -52,5 +50,3 @@ const abi = [
     "type": "function"
   }
 ];
-
-export default new web3.eth.Contract(abi, address);
