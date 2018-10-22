@@ -5,26 +5,29 @@ import cryptico from 'cryptico';
 import PasswordRow from './passwordRow';
 import './App.css';
 import * as storeHash from './storeHash';
+import ipfs from './ipfs';
 
 class App extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      ethAddress: null,
-      contractAddress: null,
+      ethAccount: '',
+      contractAddress: '',
       contract: null,
+      transactionHash: '',
+      ipfsHash: '',
       passwords: [
-        {
-          "website": "google.com",
-          "username": "bogdan.habic@mvpworkshop.co",
-          "password": "ovojemojasifra"
-        },
-        {
-          "website": "slack.com",
-          "username": "bogdan.habic@mvpworkshop.co",
-          "password": "slacksifra"
-        },
+        // {
+        //   "website": "google.com",
+        //   "username": "bogdan.habic@mvpworkshop.co",
+        //   "password": "ovojemojasifra"
+        // },
+        // {
+        //   "website": "slack.com",
+        //   "username": "bogdan.habic@mvpworkshop.co",
+        //   "password": "slacksifra"
+        // },
       ],
     }
   }
@@ -45,7 +48,7 @@ class App extends Component {
 
         const contract = new web3.eth.Contract(storeHash.abi, storeHash.address);
 
-        this.setState({ethAddress: accounts[0], contract, contractAddress: await contract.options.address});
+        this.setState({ethAccount: accounts[0], contract, contractAddress: await contract.options.address});
       } catch (error) {
         alert(`User rejected access to MetaMask accounts: ${error}`);
       }
@@ -92,8 +95,41 @@ class App extends Component {
     this.setState({passwords});
   };
 
-  updateMasterPasswordFile = () => {
-    const {passwords} = this.state;
+  loadMasterPasswordFile = async () => {
+    const {contract} = this.state;
+
+    const masterPassword = prompt('Please enter your password', '');
+    const bits = 1024;
+
+    if (!masterPassword.length) {
+      alert('Please enter your password');
+      return;
+    }
+
+    const ipfsHash = await contract.methods.getHash().call();
+
+    const files = await ipfs.get(ipfsHash);
+
+    const buffer = new Buffer(files[0].content);
+
+    const encryptedPasswords = buffer.toString();
+
+    const rsaKey = cryptico.generateRSAKey(masterPassword, bits);
+
+    const decryptedPasswords = cryptico.decrypt(encryptedPasswords, rsaKey);
+
+    if(decryptedPasswords.status !== 'success') {
+      alert('Failed decrypting master password file');
+      return;
+    }
+
+    const passwords = JSON.parse(decryptedPasswords.plaintext);
+
+    this.setState({ipfsHash, passwords: passwords});
+  };
+
+  updateMasterPasswordFile = async () => {
+    const {passwords, contract, ethAccount} = this.state;
 
     const masterPassword = prompt('Enter master password', '');
     const repeatPassword = prompt('Repeat master password', '');
@@ -118,19 +154,42 @@ class App extends Component {
     }
 
     const cipherText = encryptedJson.cipher;
+
+    const buffer = Buffer.from(cipherText);
+
+    await ipfs.add(buffer, (error, result) => {
+      if (error) {
+        alert(`Error when upload to IPFS: ${error}`);
+        return;
+      }
+
+      const ipfsHash = result[0].hash;
+
+      contract.methods.sendHash(ipfsHash).send({
+        from: ethAccount
+      }, (error, transactionHash) => {
+        this.setState({transactionHash, ipfsHash});
+      });
+    });
   };
 
   render() {
     const updatePassword = this.updatePassword;
-    const {ethAddress, contractAddress, passwords} = this.state;
+    const {ethAccount, ipfsHash, contractAddress, passwords, transactionHash} = this.state;
 
     return (
       <div className="App">
         <p>
-          ETH address: {ethAddress}
+          ETH address: {ethAccount}
         </p>
         <p>
           Contract address: {contractAddress}
+        </p>
+        <p>
+          IPFS hash: {ipfsHash}
+        </p>
+        <p>
+          Transaction: {transactionHash}
         </p>
         <table className='password-table'>
           <thead>
@@ -152,6 +211,11 @@ class App extends Component {
         <div>
           <button className='main-update-btn' onClick={this.enterNewAccount}>
             Enter new account
+          </button>
+        </div>
+        <div>
+          <button className='main-update-btn' onClick={this.loadMasterPasswordFile}>
+            Load master password file
           </button>
         </div>
         <div>

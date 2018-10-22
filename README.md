@@ -223,8 +223,8 @@ enterNewAccount = () => {
 * `yarn add cryptico`
 * Korak po korak napisati `updateMasterPasswordFile`:
 ```javascript
-updateMasterPasswordFile = () => {
-  const {passwords} = this.state;
+updateMasterPasswordFile = async () => {
+  const {passwords, contract, ethAccount} = this.state;
 
   const masterPassword = prompt('Enter master password', '');
   const repeatPassword = prompt('Repeat master password', '');
@@ -250,9 +250,22 @@ updateMasterPasswordFile = () => {
 
   const cipherText = encryptedJson.cipher;
 
-  const decryptedText = cryptico.decrypt(cipherText, rsaKey);
+  const buffer = Buffer.from(cipherText);
 
-  const decryptedJson = JSON.parse(decryptedText.plaintext);
+  await ipfs.add(buffer, (error, result) => {
+    if (error) {
+      alert(`Error when upload to IPFS: ${error}`);
+      return;
+    }
+
+    const ipfsHash = result[0].hash;
+
+    contract.methods.sendHash(ipfsHash).send({
+      from: ethAccount
+    }, (error, transactionHash) => {
+      this.setState({transactionHash, ipfsHash});
+    });
+  });
 };
 ```
 - - - -
@@ -285,6 +298,49 @@ async componentDidMount() {
     alert('This application needs MetaMask in order to work');
   }
 }
+```
+- - - -
+## IPFS upload
+* Videti iznad deo koda vezan za IPFS upload i proci korak po korak
+* Pokazati IPFS gateway
+* Pokazati Etherscan nakon sto se store-uje (ume da zabaguje metamask pa treba da se ponovo samo pokrene transakcija)
+- - - -
+## IPFS download
+* Sada kada imamo store-ovan file na ipfs i sacuvan na ethereum-u treba da ucitamo nas password file
+* Zakomentarisati password u kontrukstoru komponente
+```javascript
+loadMasterPasswordFile = async () => {
+  const {contract} = this.state;
+
+  const masterPassword = prompt('Please enter your password', '');
+  const bits = 1024;
+
+  if (!masterPassword.length) {
+    alert('Please enter your password');
+    return;
+  }
+
+  const ipfsHash = await contract.methods.getHash().call();
+
+  const files = await ipfs.get(ipfsHash);
+
+  const buffer = new Buffer(files[0].content);
+
+  const encryptedPasswords = buffer.toString();
+
+  const rsaKey = cryptico.generateRSAKey(masterPassword, bits);
+
+  const decryptedPasswords = cryptico.decrypt(encryptedPasswords, rsaKey);
+
+  if(decryptedPasswords.status !== 'success') {
+    alert('Failed decrypting master password file');
+    return;
+  }
+
+  const passwords = JSON.parse(decryptedPasswords.plaintext);
+
+  this.setState({ipfsHash, passwords: passwords});
+};
 ```
 - - - -
 ## “Domaci”
