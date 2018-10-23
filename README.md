@@ -345,6 +345,7 @@ loadMasterPasswordFile = async () => {
 - - - -
 ## “Domaci”
 * Brisanje sifre
+* Jedan contract manage-uje vise password fajlova od vise ljudi (ideja je da koriste hash map-u)
 - - - -
 ## Links
 * [Build a simple Ethereum + InterPlanetary File System (IPFS)+ React.js DApp.](https://itnext.io/build-a-simple-ethereum-interplanetary-file-system-ipfs-react-js-dapp-23ff4914ce4e)
