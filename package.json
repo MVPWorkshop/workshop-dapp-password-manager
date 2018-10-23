@@ -2,6 +2,7 @@
   "name": "password-manager",
   "version": "0.1.0",
   "private": true,
+  "homepage": "./",
   "dependencies": {
     "cryptico": "^1.0.2",
     "ipfs-api": "^25.0.0",
