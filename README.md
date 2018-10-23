@@ -345,6 +345,7 @@ loadMasterPasswordFile = async () => {
 - - - -
 ## “Domaci”
 * Brisanje sifre
+* ENS
 * Jedan contract manage-uje vise password fajlova od vise ljudi (ideja je da koriste hash map-u)
 - - - -
 ## Links
