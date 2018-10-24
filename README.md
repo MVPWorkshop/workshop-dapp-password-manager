@@ -343,9 +343,24 @@ loadMasterPasswordFile = async () => {
 };
 ```
 - - - -
+## IPFS & IPNS
+
+> Izbildovati ceo JS bundle i html
+* `yarn build`
+> Dodati ceo folder
+* `ipfs add -r build/` - ovo nam daje cid
+> Generisati kljuc
+* `ipfs key gen --type=rsa --size=2048 mykey`
+> Publishovati pomocu kljuca
+* `ipfs name publish --key mykey <cid>` - ovo nam daje ipns-hash
+> Dodati TXT rekord sa vrednoscu `dnslink=/ipns/<ipns-hash>`
+> Pristupiti preko: gateway.ipfs.io/ipns/<domen>
+> Dodati CNAME rekord na gateway.ipfs.io i onda moze da se pristupi samo preko `<domen>`
+
+
+- - - -
 ## “Domaci”
 * Brisanje sifre
-* ENS
 * Jedan contract manage-uje vise password fajlova od vise ljudi (ideja je da koriste hash map-u)
 - - - -
 ## Links
