@@ -345,17 +345,28 @@ loadMasterPasswordFile = async () => {
 - - - -
 ## IPFS & IPNS
 
+### IPFS hosting
 > Izbildovati ceo JS bundle i html
 * `yarn build`
 > Dodati ceo folder
-* `ipfs add -r build/` - ovo nam daje cid
-> Generisati kljuc
+* `ipfs add -r build/`
+
+Hash koji je vezan za uploadovani `build/` direktorijum je pristup nasoj aplikaciji: https://gateway.ipfs.io/ipfs/<build-dir-hash>
+
+
+### IPNS (vezivanje za user-friendly domen)
+> Generisati kljuc, kako bismo samo mi mogli da menjamo odredjeni IPNS
 * `ipfs key gen --type=rsa --size=2048 mykey`
-> Publishovati pomocu kljuca
-* `ipfs name publish --key mykey <cid>` - ovo nam daje ipns-hash
-> Dodati TXT rekord sa vrednoscu `dnslink=/ipns/<ipns-hash>`
-> Pristupiti preko: gateway.ipfs.io/ipns/<domen>
-> Dodati CNAME rekord na gateway.ipfs.io i onda moze da se pristupi samo preko `<domen>`
+
+> Publishovati "name" pomocu kljuca
+* `ipfs name publish --key mykey <build-dir-hash>` - ovo nam daje ipns-hash
+
+> Dodati TXT rekord sa vrednoscu `dnslink=/ipns/<ipns-hash>` na domen sa koga zelimo da pristupimo nasem DAppu
+
+> Pristupiti preko: https://gateway.ipfs.io/ipns/<domen>
+
+> Ako zelimo da pristupimo kucajuci samo odredjeni domen
+* Dodati CNAME rekord na gateway.ipfs.io i onda mozemo pristupiti DApp-u samo kucanjem domena u browser
 
 
 - - - -
