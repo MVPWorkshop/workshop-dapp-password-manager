@@ -29,22 +29,23 @@
 * [Remix](https://remix.ethereum.org/#optimize=false&version=soljson-v0.4.25+commit.59dbf8f1.js)
 * `PasswordManager.sol` `0x965f1178c9c025e508163e1a759a43e3a356392d`
 ```solidity
-pragma solidity ^0.4.25;
+pragma solidity ^0.5.0;
+
 contract PasswordManager {
     address public passwordOwner;
 
     string ipfsHash;
-    
+
     constructor() public {
         passwordOwner = msg.sender;
     }
 
-    function sendHash(string x) public {
-        assert(msg.sender == passwordOwner);
+    function sendHash(string memory x) public {
+        require(msg.sender == passwordOwner);
         ipfsHash = x;
     }
 
-    function getHash() public view returns (string x) {
+    function getHash() public view returns (string memory x) {
         return ipfsHash;
     }
 }
@@ -54,11 +55,37 @@ contract PasswordManager {
 	* Pokazati `getHash` kroz Remix-ov GUI
 * Napraviti `storeHash.js`:
 ```javascript
-import web3 from 'web3';
+export const address = '0x06354804D4aC44d7443e1f8f2Aa9E270764bE885';
 
-const address = '0x965f1178c9c025e508163e1a759a43e3a356392d';
-
-const abi = [
+export const abi = [
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "passwordOwner",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getHash",
+    "outputs": [
+      {
+        "name": "x",
+        "type": "string"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
   {
     "constant": false,
     "inputs": [
@@ -78,38 +105,8 @@ const abi = [
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "constructor"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "getHash",
-    "outputs": [
-      {
-        "name": "x",
-        "type": "string"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "passwordOwner",
-    "outputs": [
-      {
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
   }
 ];
-
-export default new web3.eth.Contract(abi, address);
 ```
 - - - -
 ## IPFS file
@@ -290,7 +287,7 @@ async componentDidMount() {
 
       const contract = new web3.eth.Contract(storeHash.abi, storeHash.address);
 
-      this.setState({ethAddress: accounts[0], contract, contractAddress: await contract.options.address});
+      this.setState({ ethAccount: accounts[0], contract, contractAddress: await contract.options.address });
     } catch (error) {
       alert(`User rejected access to MetaMask accounts: ${error}`);
     }
