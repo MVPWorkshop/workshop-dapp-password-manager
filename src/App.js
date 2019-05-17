@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import Web3 from 'web3';
 import cryptico from 'cryptico';
 import PasswordRow from './passwordRow';
@@ -17,18 +17,7 @@ class App extends Component {
       contract: null,
       transactionHash: '',
       ipfsHash: '',
-      passwords: [
-        // {
-        //   "website": "google.com",
-        //   "username": "bogdan.habic@mvpworkshop.co",
-        //   "password": "ovojemojasifra"
-        // },
-        // {
-        //   "website": "slack.com",
-        //   "username": "bogdan.habic@mvpworkshop.co",
-        //   "password": "slacksifra"
-        // },
-      ],
+      passwords: [],
     }
   }
 
@@ -48,7 +37,7 @@ class App extends Component {
 
         const contract = new web3.eth.Contract(storeHash.abi, storeHash.address);
 
-        this.setState({ethAccount: accounts[0], contract, contractAddress: await contract.options.address});
+        this.setState({ ethAccount: accounts[0], contract, contractAddress: await contract.options.address });
       } catch (error) {
         alert(`User rejected access to MetaMask accounts: ${error}`);
       }
@@ -58,7 +47,7 @@ class App extends Component {
   }
 
   updatePassword = (website, username, password) => {
-    const {passwords} = this.state;
+    const { passwords } = this.state;
 
     passwords.forEach(function (accountInfo) {
       if (accountInfo.website === website && accountInfo.username === username) {
@@ -66,7 +55,7 @@ class App extends Component {
       }
     });
 
-    this.setState({passwords});
+    this.setState({ passwords });
   };
 
   enterNewAccount = () => {
@@ -88,15 +77,15 @@ class App extends Component {
       alert('Please enter a password ');
     }
 
-    const {passwords} = this.state;
+    const { passwords } = this.state;
 
-    passwords.push({website, username, password});
+    passwords.push({ website, username, password });
 
-    this.setState({passwords});
+    this.setState({ passwords });
   };
 
   loadMasterPasswordFile = async () => {
-    const {contract} = this.state;
+    const { contract } = this.state;
 
     const masterPassword = prompt('Please enter your password', '');
     const bits = 1024;
@@ -118,18 +107,18 @@ class App extends Component {
 
     const decryptedPasswords = cryptico.decrypt(encryptedPasswords, rsaKey);
 
-    if(decryptedPasswords.status !== 'success') {
+    if (decryptedPasswords.status !== 'success') {
       alert('Failed decrypting master password file');
       return;
     }
 
     const passwords = JSON.parse(decryptedPasswords.plaintext);
 
-    this.setState({ipfsHash, passwords: passwords});
+    this.setState({ ipfsHash, passwords: passwords });
   };
 
   updateMasterPasswordFile = async () => {
-    const {passwords, contract, ethAccount} = this.state;
+    const { passwords, contract, ethAccount } = this.state;
 
     const masterPassword = prompt('Enter master password', '');
     const repeatPassword = prompt('Repeat master password', '');
@@ -168,14 +157,14 @@ class App extends Component {
       contract.methods.sendHash(ipfsHash).send({
         from: ethAccount
       }, (error, transactionHash) => {
-        this.setState({transactionHash, ipfsHash});
+        this.setState({ transactionHash, ipfsHash });
       });
     });
   };
 
   render() {
     const updatePassword = this.updatePassword;
-    const {ethAccount, ipfsHash, contractAddress, passwords, transactionHash} = this.state;
+    const { ethAccount, ipfsHash, contractAddress, passwords, transactionHash } = this.state;
 
     return (
       <div className="App">
@@ -193,19 +182,19 @@ class App extends Component {
         </p>
         <table className='password-table'>
           <thead>
-          <tr>
-            <td>Website</td>
-            <td>Username</td>
-            <td>Password</td>
-            <td>Actions</td>
-          </tr>
+            <tr>
+              <td>Website</td>
+              <td>Username</td>
+              <td>Password</td>
+              <td>Actions</td>
+            </tr>
           </thead>
           <tbody>
-          {passwords.map(function ({website, username, password}) {
-            return <PasswordRow website={website} username={username} password={password}
-                                onUpdatePassword={updatePassword}
-                                key={`${website}-${username}`}/>
-          })}
+            {passwords.map(function ({ website, username, password }) {
+              return <PasswordRow website={website} username={username} password={password}
+                onUpdatePassword={updatePassword}
+                key={`${website}-${username}`} />
+            })}
           </tbody>
         </table>
         <div>
